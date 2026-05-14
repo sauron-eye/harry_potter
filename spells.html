@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spells & Charms — The Wizarding Archives</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Cinzel:wght@400;600;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#06030e;--gold:#c9a84c;--gold2:#e8c97a;--gold3:#7a5e22;--parchment:#f0e0bc;--text:#e2d4b8;--muted:#8a7a60}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'IM Fell English',Georgia,serif;cursor:none;overflow-x:hidden}
+#cursor{position:fixed;width:12px;height:12px;border-radius:50%;background:var(--gold2);pointer-events:none;z-index:10000;transform:translate(-50%,-50%);mix-blend-mode:screen}
+#cursor-ring{position:fixed;width:32px;height:32px;border-radius:50%;border:1px solid rgba(201,168,76,.5);pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+.sparkle{position:fixed;pointer-events:none;z-index:9998;border-radius:50%;animation:sfade .8s ease-out forwards}
+@keyframes sfade{0%{transform:scale(1) translate(0,0);opacity:1}100%{transform:scale(0) translate(var(--dx),var(--dy));opacity:0}}
+/* wand trail */
+.wand-trail{position:fixed;pointer-events:none;z-index:9997;width:4px;height:4px;border-radius:50%;animation:trailFade .5s ease-out forwards}
+@keyframes trailFade{0%{opacity:.8;transform:scale(1)}100%{opacity:0;transform:scale(3)}}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1rem 2.5rem;background:linear-gradient(to bottom,rgba(6,3,14,.97),transparent);border-bottom:1px solid rgba(201,168,76,.1)}
+.nav-brand{font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--gold);letter-spacing:.2em;text-decoration:none;text-transform:uppercase}
+.nav-brand span{color:var(--parchment)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.18em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color .3s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--gold);transition:width .3s}
+.nav-links a:hover,.nav-links a.active{color:var(--gold)}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%}
+
+/* HEADER */
+.page-header{padding:12rem 2rem 4rem;text-align:center;position:relative}
+.page-header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(45,27,78,.5),transparent 60%);pointer-events:none}
+.page-eyebrow{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.5em;color:var(--gold3);text-transform:uppercase;display:block;margin-bottom:1rem;animation:fu .8s ease both}
+.page-title{font-family:'Cinzel Decorative',serif;font-size:clamp(2rem,5vw,4rem);color:var(--parchment);animation:fu .8s .2s ease both}
+.page-desc{font-style:italic;color:var(--muted);max-width:600px;margin:1.5rem auto 0;line-height:1.8;animation:fu .8s .4s ease both}
+@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* SEARCH + FILTERS */
+.spells-controls{position:sticky;top:72px;z-index:50;background:rgba(6,3,14,.95);border-bottom:1px solid rgba(201,168,76,.08);padding:1.5rem 2rem}
+.search-wrap{max-width:600px;margin:0 auto 1rem;position:relative}
+.search-input{width:100%;background:rgba(13,7,32,.8);border:1px solid rgba(201,168,76,.2);color:var(--text);font-family:'IM Fell English',serif;font-size:1rem;padding:.8rem 1.2rem .8rem 3rem;outline:none;transition:border-color .3s}
+.search-input::placeholder{color:var(--muted);font-style:italic}
+.search-input:focus{border-color:rgba(201,168,76,.5)}
+.search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:1.1rem;pointer-events:none}
+.type-filters{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+.tfilter{font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;padding:.4rem 1rem;border:1px solid rgba(201,168,76,.15);background:transparent;color:var(--muted);cursor:none;transition:all .3s}
+.tfilter:hover,.tfilter.active{background:rgba(201,168,76,.08);border-color:var(--gold);color:var(--gold)}
+.tfilter[data-type="charm"]{border-color:rgba(100,150,255,.3);color:#6699ff}
+.tfilter[data-type="charm"]:hover,.tfilter[data-type="charm"].active{background:rgba(100,150,255,.06);border-color:#6699ff}
+.tfilter[data-type="curse"]{border-color:rgba(180,0,0,.4);color:#cc4444}
+.tfilter[data-type="curse"]:hover,.tfilter[data-type="curse"].active{background:rgba(180,0,0,.06);border-color:#cc4444}
+.tfilter[data-type="transfig"]{border-color:rgba(150,100,200,.3);color:#aa88ee}
+.tfilter[data-type="transfig"]:hover,.tfilter[data-type="transfig"].active{background:rgba(150,100,200,.06);border-color:#aa88ee}
+.tfilter[data-type="healing"]{border-color:rgba(0,180,100,.3);color:#44cc88}
+.tfilter[data-type="healing"]:hover,.tfilter[data-type="healing"].active{background:rgba(0,180,100,.06);border-color:#44cc88}
+.tfilter[data-type="dark"]{border-color:rgba(100,0,150,.4);color:#993399}
+.tfilter[data-type="dark"]:hover,.tfilter[data-type="dark"].active{background:rgba(100,0,150,.06);border-color:#993399}
+
+/* SPELLS GRID */
+.spells-section{padding:3rem 2rem 6rem;max-width:1300px;margin:0 auto}
+.spells-count{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:2rem}
+.spells-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem}
+
+/* SPELL CARD */
+.spell-card{border:1px solid rgba(201,168,76,.1);background:linear-gradient(135deg,rgba(13,7,32,.95),rgba(8,3,18,.98));padding:2rem;position:relative;overflow:hidden;transition:transform .35s,border-color .35s,box-shadow .35s;cursor:none}
+.spell-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .4s;pointer-events:none}
+.spell-card:hover{transform:translateY(-4px);border-color:rgba(201,168,76,.35);box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.spell-card:hover::before{opacity:1}
+.spell-card.charm::before{background:radial-gradient(ellipse at top,rgba(100,150,255,.06),transparent)}
+.spell-card.curse::before{background:radial-gradient(ellipse at top,rgba(180,0,0,.08),transparent)}
+.spell-card.transfig::before{background:radial-gradient(ellipse at top,rgba(150,100,200,.06),transparent)}
+.spell-card.healing::before{background:radial-gradient(ellipse at top,rgba(0,180,100,.06),transparent)}
+.spell-card.dark::before{background:radial-gradient(ellipse at top,rgba(100,0,150,.08),transparent)}
+
+.spell-type-badge{position:absolute;top:1rem;right:1rem;font-family:'Cinzel',serif;font-size:.48rem;letter-spacing:.15em;text-transform:uppercase;padding:.25rem .6rem;border:1px solid}
+.charm .spell-type-badge{border-color:rgba(100,150,255,.4);color:#6699ff}
+.curse .spell-type-badge{border-color:rgba(220,60,60,.4);color:#cc4444}
+.transfig .spell-type-badge{border-color:rgba(150,100,200,.4);color:#aa88ee}
+.healing .spell-type-badge{border-color:rgba(0,180,100,.4);color:#44cc88}
+.dark .spell-type-badge{border-color:rgba(160,0,220,.4);color:#993399}
+
+.spell-incantation{font-family:'Cinzel Decorative',serif;font-size:1.4rem;color:var(--gold);margin-bottom:.3rem;transition:text-shadow .4s}
+.spell-card:hover .spell-incantation{text-shadow:0 0 20px rgba(201,168,76,.6)}
+.spell-latin{font-size:.75rem;font-style:italic;color:var(--muted);margin-bottom:1rem}
+.spell-effect{font-size:.9rem;line-height:1.8;color:var(--text);margin-bottom:1.2rem}
+.spell-meta{display:flex;gap:1rem;flex-wrap:wrap}
+.smeta{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+.smeta span{color:var(--silver,#b8b0a0);font-family:'IM Fell English',serif;font-style:italic;font-size:.7rem;text-transform:none;letter-spacing:0}
+
+/* spell cast button */
+.cast-btn{margin-top:1.2rem;font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;padding:.5rem 1.2rem;border:1px solid rgba(201,168,76,.2);background:transparent;color:var(--gold3);cursor:none;transition:all .3s;width:100%}
+.cast-btn:hover{background:rgba(201,168,76,.06);border-color:rgba(201,168,76,.4);color:var(--gold)}
+
+/* SPELL CAST MODAL */
+.cast-modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85)}
+.cast-modal.active{display:flex}
+.cast-inner{background:linear-gradient(135deg,rgba(22,10,40,.98),rgba(13,7,32,.99));border:1px solid rgba(201,168,76,.3);padding:4rem;text-align:center;max-width:500px;width:90%;position:relative;animation:modalIn .4s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:none}}
+.cast-flash{width:80px;height:80px;border-radius:50%;margin:0 auto 2rem;display:flex;align-items:center;justify-content:center;font-size:2.5rem;animation:flashPulse 2s ease-in-out infinite}
+@keyframes flashPulse{0%,100%{box-shadow:0 0 0 0 var(--flash-col)}50%{box-shadow:0 0 30px 15px transparent}}
+.cast-incant{font-family:'Cinzel Decorative',serif;font-size:2rem;color:var(--gold);margin-bottom:.5rem;text-shadow:0 0 30px rgba(201,168,76,.5)}
+.cast-eff{font-style:italic;color:var(--text);line-height:1.7;margin:1rem 0 2rem}
+.cast-close{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;padding:.7rem 2rem;border:1px solid rgba(201,168,76,.3);background:transparent;color:var(--gold3);cursor:none;transition:all .3s}
+.cast-close:hover{background:rgba(201,168,76,.06);color:var(--gold)}
+.particles-burst{position:absolute;inset:0;pointer-events:none}
+.no-results{text-align:center;padding:4rem;color:var(--muted);font-style:italic;font-size:1.1rem;display:none}
+
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s}
+.reveal.visible{opacity:1;transform:none}
+
+footer{border-top:1px solid rgba(201,168,76,.1);padding:3rem 2rem;text-align:center;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+footer a{color:var(--gold3);text-decoration:none;margin:0 1rem}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<nav>
+  <a href="index.html" class="nav-brand">The <span>Wizarding</span> Archives</a>
+  <ul class="nav-links">
+    <li><a href="characters.html">Characters</a></li>
+    <li><a href="houses.html">Houses</a></li>
+    <li><a href="spells.html" class="active">Spells</a></li>
+    <li><a href="world.html">The World</a></li>
+    <li><a href="timeline.html">Chronicle</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <span class="page-eyebrow">Volume III · The Incantations</span>
+  <h1 class="page-title">Spells & Charms</h1>
+  <p class="page-desc">The illuminated catalogue of magical incantations — from the humble Lumos to the darkest of the Unforgivable Curses. Knowledge is the sharpest wand.</p>
+</div>
+
+<div class="spells-controls">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="spell-search" placeholder="Search incantations, effects...">
+  </div>
+  <div class="type-filters">
+    <button class="tfilter active" data-type="all">All Spells</button>
+    <button class="tfilter" data-type="charm">Charms</button>
+    <button class="tfilter" data-type="curse">Curses</button>
+    <button class="tfilter" data-type="transfig">Transfiguration</button>
+    <button class="tfilter" data-type="healing">Healing</button>
+    <button class="tfilter" data-type="dark">Dark Arts</button>
+  </div>
+</div>
+
+<section class="spells-section">
+  <div class="spells-count" id="spell-count"></div>
+  <div class="spells-grid" id="spells-grid"></div>
+  <div class="no-results" id="no-results">No spells found in the grimoire matching your query.</div>
+</section>
+
+<!-- CAST MODAL -->
+<div class="cast-modal" id="cast-modal" onclick="closeCast(event)">
+  <div class="cast-inner">
+    <div class="particles-burst" id="burst"></div>
+    <div class="cast-flash" id="cast-flash" style="background:rgba(201,168,76,.1)">
+      <span id="cast-icon">✨</span>
+    </div>
+    <div class="cast-incant" id="cast-incant"></div>
+    <div style="font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-bottom:.5rem" id="cast-type"></div>
+    <p class="cast-eff" id="cast-eff"></p>
+    <button class="cast-close" onclick="document.getElementById('cast-modal').classList.remove('active')">Close Grimoire</button>
+  </div>
+</div>
+
+<footer>
+  <a href="index.html">Home</a>
+  <a href="characters.html">Characters</a>
+  <a href="houses.html">Houses</a>
+  <a href="world.html">The World</a>
+  <a href="timeline.html">Chronicle</a>
+  <br><br>
+  A fan creation — all characters belong to J.K. Rowling
+</footer>
+
+<script>
+// cursor + wand trail
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0,trailTimer=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+  // wand trail
+  clearTimeout(trailTimer);
+  const t=document.createElement('div');t.className='wand-trail';
+  const sz=Math.random()*4+2;
+  t.style.cssText=`left:${mx}px;top:${my}px;width:${sz}px;height:${sz}px;background:hsl(${40+Math.random()*20},${60+Math.random()*30}%,${50+Math.random()*30}%)`;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),500);
+  // sparkle
+  if(Math.random()<.15){const s=document.createElement('div');s.className='sparkle';const ssz=Math.random()*6+3;s.style.cssText=`left:${mx}px;top:${my}px;width:${ssz}px;height:${ssz}px;background:hsl(${40+Math.random()*20},80%,${60+Math.random()*20}%);--dx:${(Math.random()-.5)*60}px;--dy:${(Math.random()-.5)*60}px`;document.body.appendChild(s);setTimeout(()=>s.remove(),800);}
+});
+setInterval(()=>{rx+=(mx-rx)*.15;ry+=(my-ry)*.15;ring.style.left=rx+'px';ring.style.top=ry+'px'},16);
+
+// reveal
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.1});
+
+// ── SPELLS DATA ──
+const SPELLS=[
+  {incant:"Lumos",latin:"Light",type:"charm",icon:"💡",color:"rgba(255,255,200,.15)",effect:"Illuminates the tip of the caster's wand, creating a concentrated beam of light. One of the most fundamental spells taught at Hogwarts, and among the first learned by students. The counterspell is Nox.",by:"Harry Potter (first use)",first:"The Chamber of Secrets"},
+  {incant:"Expelliarmus",latin:"To disarm",type:"charm",icon:"✨",color:"rgba(255,100,100,.1)",effect:"The Disarming Charm. Forces the target to drop whatever they are holding — most commonly their wand. Harry Potter's signature spell, used to defeat Voldemort in the final confrontation. Not considered powerful, but used with exceptional precision.",by:"Severus Snape (first canonical use)",first:"The Chamber of Secrets"},
+  {incant:"Wingardium Leviosa",latin:"To levitate",type:"charm",icon:"🪶",color:"rgba(100,200,255,.1)",effect:"The Levitation Charm. Causes the target object to rise into the air. Pronunciation is critical — the emphasis falls on the 'gar' in Wingardium, and the 'o' in Leviosa. One of the first charms taught in first year.",by:"Hermione Granger (corrected Ron)",first:"The Philosopher's Stone"},
+  {incant:"Accio",latin:"I summon",type:"charm",icon:"🎯",color:"rgba(201,168,76,.1)",effect:"The Summoning Charm. Brings a desired object to the caster from any distance, provided the caster has a strong enough focus on the object. Works across vast distances, as demonstrated when Harry summoned his Firebolt during the Triwizard Tournament.",by:"Hermione Granger",first:"The Goblet of Fire"},
+  {incant:"Protego",latin:"I protect",type:"charm",icon:"🛡️",color:"rgba(100,180,255,.1)",effect:"The Shield Charm. Conjures an invisible barrier that deflects spells and physical objects. The Protego Maxima variant can protect entire buildings. It is considered one of the most important defensive spells a wizard can master.",by:"Harry Potter",first:"The Goblet of Fire"},
+  {incant:"Expecto Patronum",latin:"I await a patron",type:"charm",icon:"🦌",color:"rgba(200,230,255,.12)",effect:"The Patronus Charm. Conjures a silver, shield-like guardian from the caster's happiest memories. The Patronus takes on an animal form unique to the caster and can repel Dementors, the only known defence against them. The most difficult and emotionally demanding charm known.",by:"Albus Dumbledore",first:"The Prisoner of Azkaban"},
+  {incant:"Alohomora",latin:"Friendly to thieves",type:"charm",icon:"🔓",color:"rgba(201,168,76,.08)",effect:"The Unlocking Charm. Opens locked or sealed doors and containers. It can be blocked by the counterspell Colloportus and by magical security wards. A useful tool for both wizards and, unfortunately, those with burglary in mind.",by:"Hermione Granger (student use)",first:"The Philosopher's Stone"},
+  {incant:"Riddikulus",latin:"Ridiculous",type:"charm",icon:"🃏",color:"rgba(200,150,255,.1)",effect:"Forces a Boggart — a shapeshifting creature that takes the form of one's deepest fear — to transform into something humorous and harmless. Requires the caster to force a laugh, combining will and imagination to overcome fear through comedy.",by:"Professor Lupin (taught)",first:"The Prisoner of Azkaban"},
+  {incant:"Avada Kedavra",latin:"Let the thing be destroyed",type:"dark",icon:"💀",color:"rgba(80,0,120,.15)",effect:"One of the three Unforgivable Curses. The Killing Curse — a flash of green light that causes instant, painless death with no counter-curse known to magic. The only known survivor is Harry Potter, protected by his mother's sacrificial love. Carries a life sentence in Azkaban.",by:"Lord Voldemort",first:"The Philosopher's Stone (referenced)"},
+  {incant:"Crucio",latin:"I torture",type:"dark",icon:"⚡",color:"rgba(150,0,0,.15)",effect:"The Cruciatus Curse. One of the three Unforgivable Curses. Inflicts intense, unbearable pain without causing physical damage. Prolonged exposure can destroy a victim's mind. Requires genuine desire to cause suffering to be cast effectively. The Longbottom parents were driven to madness by this curse.",by:"Bellatrix Lestrange (canonical)",first:"The Goblet of Fire"},
+  {incant:"Imperio",latin:"I command",type:"dark",icon:"🌀",color:"rgba(100,0,150,.15)",effect:"The Imperius Curse. One of the three Unforgivable Curses. Places the victim under the complete control of the caster, inducing a blissful, dreamlike state of compliance. A sufficiently strong-willed witch or wizard can resist and throw it off — as Harry Potter demonstrated.",by:"Voldemort's Death Eaters (widespread use)",first:"The Goblet of Fire"},
+  {incant:"Sectum Sempra",latin:"Always cutting",type:"curse",icon:"🗡️",color:"rgba(180,0,0,.12)",effect:"A dark spell invented by Severus Snape (as the Half-Blood Prince) that causes deep, sword-like lacerations across the body. Potentially fatal if untreated. The counter-spell, Vulnera Sanentur, must be sung to heal the wounds. Used by Harry on Draco accidentally.",by:"Severus Snape (invented)",first:"The Half-Blood Prince"},
+  {incant:"Legilimens",latin:"One who reads minds",type:"dark",icon:"🧠",color:"rgba(100,0,150,.12)",effect:"Forces entry into the victim's mind, reading their thoughts, emotions, and memories. The counter-discipline, Occlumency, can shield the mind against this intrusion. Voldemort was the supreme Legilimens; Dumbledore was also extraordinarily skilled.",by:"Severus Snape (trained Harry)",first:"The Order of the Phoenix"},
+  {incant:"Stupefy",latin:"To stun",type:"charm",icon:"⭐",color:"rgba(255,100,50,.1)",effect:"The Stunning Spell. Emits a jet of red light that renders the target unconscious. One of the most commonly used combat spells in the wizarding world, favoured for its non-lethal nature. The counter-spell Ennervate (or Rennervate) revives the target.",by:"Various",first:"The Goblet of Fire"},
+  {incant:"Obliviate",latin:"To forget",type:"charm",icon:"🌫️",color:"rgba(150,150,255,.1)",effect:"The Memory Charm. Removes specific memories from the victim's mind or — in extreme cases — completely wipes the memory. Hermione Granger used it on her own parents to protect them from Voldemort, removing all knowledge of herself from their minds.",by:"Hermione Granger (canonical)",first:"The Chamber of Secrets"},
+  {incant:"Apparition",latin:"Appearance",type:"transfig",icon:"🌀",color:"rgba(150,100,200,.1)",effect:"The magical act of teleportation — disappearing from one location and reappearing in another. Requires exceptional concentration: Destination, Determination, and Deliberation. Apparating too hastily can result in Splinching — the leaving behind of body parts. Taught to students at age 17.",by:"Ministry of Magic (regulated)",first:"The Order of the Phoenix"},
+  {incant:"Transfiguration",latin:"To transform",type:"transfig",icon:"🦋",color:"rgba(150,100,200,.1)",effect:"The art of changing the form or appearance of an object. One of the most complex and dangerous branches of magic. Ranges from simple vanishing spells to the extraordinarily difficult human Transfiguration and Animagus transformation.",by:"Albus Dumbledore (master)",first:"The Philosopher's Stone"},
+  {incant:"Episkey",latin:"To repair",type:"healing",icon:"💚",color:"rgba(0,180,100,.1)",effect:"A healing charm that repairs minor to moderate physical injuries such as broken noses, split lips, and small lacerations. Not powerful enough for serious spell damage. Nymphadora Tonks used it to repair Harry's broken nose after Draco Malfoy's attack on the Hogwarts Express.",by:"Nymphadora Tonks",first:"The Half-Blood Prince"},
+  {incant:"Vulnera Sanentur",latin:"May the wounds be healed",type:"healing",icon:"🌿",color:"rgba(0,180,100,.12)",effect:"A complex healing incantation — sung rather than spoken — that reverses the effects of Sectumsempra. Each repetition of the charm slows the bleeding, then clears the damage. Created by Severus Snape alongside the curse it counters.",by:"Severus Snape",first:"The Half-Blood Prince"},
+  {incant:"Fiendfyre",latin:"Fiend fire",type:"dark",icon:"🔥",color:"rgba(200,80,0,.15)",effect:"Dark magic of the most destructive kind. Conjures cursed fire that takes the form of great beasts — serpents, dragons, chimeras — and hunts living targets. It can destroy Horcruxes, among the few things that can. The fire is extraordinarily difficult to control and has killed more than one caster.",by:"Vincent Crabbe (lost control)",first:"The Deathly Hallows"},
+  {incant:"Prior Incantato",latin:"Previous incantation",type:"charm",icon:"🔮",color:"rgba(201,168,76,.1)",effect:"Forces a wand to reveal the last spell it cast, producing a shadowy echo of the spell or its effect. Used by Mr Weasley's Ministry to determine what Harry's wand had cast in Little Whinging. Famously manifested during the duel between Harry and Voldemort's twin-core wands.",by:"Amos Diggory",first:"The Goblet of Fire"},
+  {incant:"Morsmordre",latin:"Death's bite",type:"dark",icon:"🐍",color:"rgba(0,100,0,.15)",effect:"Conjures the Dark Mark — the skull and serpent symbol of Lord Voldemort — into the sky above a location. Cast after a Death Eater kill as a mark of Voldemort's presence and power. Deeply feared throughout the wizarding community during both wizarding wars.",by:"Death Eaters",first:"The Goblet of Fire"},
+  {incant:"Finite Incantatem",latin:"Let the spell end",type:"charm",icon:"🛑",color:"rgba(201,168,76,.08)",effect:"A spell-cancelling charm that negates the effects of other magical spells currently active. Can break enchantments, lift jinxes, and end ongoing magical effects. Useful in situations where multiple spells have been cast and order must be restored.",by:"Hermione Granger",first:"The Chamber of Secrets"},
+];
+
+let activeType='all',searchVal='';
+
+function renderSpells(){
+  const grid=document.getElementById('spells-grid');
+  grid.innerHTML='';
+  const filtered=SPELLS.filter(s=>{
+    const matchType=activeType==='all'||s.type===activeType;
+    const q=searchVal.toLowerCase();
+    const matchSearch=!q||s.incant.toLowerCase().includes(q)||s.effect.toLowerCase().includes(q)||s.latin.toLowerCase().includes(q);
+    return matchType&&matchSearch;
+  });
+  document.getElementById('spell-count').textContent=`${filtered.length} spell${filtered.length!==1?'s':''} in the grimoire`;
+  document.getElementById('no-results').style.display=filtered.length===0?'block':'none';
+  filtered.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.className=`spell-card ${s.type} reveal`;
+    card.style.transitionDelay=`${(i%6)*.06}s`;
+    card.innerHTML=`
+      <span class="spell-type-badge">${s.type==='transfig'?'Transfiguration':s.type.charAt(0).toUpperCase()+s.type.slice(1)}</span>
+      <div class="spell-incantation">${s.incant}</div>
+      <div class="spell-latin font-style:italic;color:var(--muted)">${s.latin}</div>
+      <p class="spell-effect">${s.effect.substring(0,120)}…</p>
+      <div class="spell-meta">
+        <div class="smeta">First Used By <span>${s.by}</span></div>
+        <div class="smeta">First Seen <span>${s.first}</span></div>
+      </div>
+      <button class="cast-btn" onclick="castSpell(event,'${s.incant}','${s.type}','${s.icon}','${s.color}',\`${s.effect}\`)">✦ Cast & Read Full Entry ✦</button>
+    `;
+    grid.appendChild(card);
+    obs.observe(card);
+  });
+}
+
+function castSpell(e,incant,type,icon,color,effect){
+  e.stopPropagation();
+  const modal=document.getElementById('cast-modal');
+  modal.classList.add('active');
+  document.getElementById('cast-incant').textContent=incant;
+  document.getElementById('cast-type').textContent=type==='transfig'?'Transfiguration':type.charAt(0).toUpperCase()+type.slice(1);
+  document.getElementById('cast-eff').textContent=effect;
+  document.getElementById('cast-icon').textContent=icon;
+  document.getElementById('cast-flash').style.background=color;
+  document.getElementById('cast-flash').style.setProperty('--flash-col',color);
+  // burst particles
+  const burst=document.getElementById('burst');burst.innerHTML='';
+  for(let i=0;i<15;i++){
+    const p=document.createElement('div');p.className='sparkle';
+    const sz=Math.random()*8+4;
+    const x=window.innerWidth/2+(Math.random()-.5)*200;
+    const y=window.innerHeight/2+(Math.random()-.5)*150;
+    p.style.cssText=`left:${x}px;top:${y}px;width:${sz}px;height:${sz}px;background:${icon==='💀'?'#993399':icon==='⚡'?'#cc4444':'#c9a84c'};--dx:${(Math.random()-.5)*120}px;--dy:${(Math.random()-.5)*120}px;position:fixed`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),800);
+  }
+}
+function closeCast(e){if(e.target===document.getElementById('cast-modal'))document.getElementById('cast-modal').classList.remove('active');}
+
+document.getElementById('spell-search').addEventListener('input',e=>{searchVal=e.target.value;renderSpells()});
+document.querySelectorAll('.tfilter').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tfilter').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');activeType=btn.dataset.type;renderSpells();
+  });
+});
+
+// cursor
+const cur2=document.getElementById('cursor'),ring2=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur2.style.left=mx+'px';cur2.style.top=my+'px';
+});
+setInterval(()=>{rx+=(mx-rx)*.15;ry+=(my-ry)*.15;ring2.style.left=rx+'px';ring2.style.top=ry+'px'},16);
+
+renderSpells();
+</script>
+</body>
+</html>
