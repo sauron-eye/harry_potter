@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Witches & Wizards — The Wizarding Archives</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Cinzel:wght@400;600;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#06030e;--bg2:#0d0720;--gold:#c9a84c;--gold2:#e8c97a;--gold3:#7a5e22;--crimson:#8b1a1a;--parchment:#f0e0bc;--text:#e2d4b8;--muted:#8a7a60;--violet:#2d1b4e;--silver:#b8b0a0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'IM Fell English',Georgia,serif;cursor:none;overflow-x:hidden}
+#cursor{position:fixed;width:12px;height:12px;border-radius:50%;background:var(--gold2);pointer-events:none;z-index:10000;transform:translate(-50%,-50%)}
+#cursor-ring{position:fixed;width:32px;height:32px;border-radius:50%;border:1px solid rgba(201,168,76,.5);pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+.sparkle{position:fixed;pointer-events:none;z-index:9998;border-radius:50%;animation:sfade .8s ease-out forwards}
+@keyframes sfade{0%{transform:scale(1) translate(0,0);opacity:1}100%{transform:scale(0) translate(var(--dx),var(--dy));opacity:0}}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1rem 2.5rem;background:linear-gradient(to bottom,rgba(6,3,14,.97),transparent);border-bottom:1px solid rgba(201,168,76,.1)}
+.nav-brand{font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--gold);letter-spacing:.2em;text-decoration:none;text-transform:uppercase}
+.nav-brand span{color:var(--parchment)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.18em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color .3s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--gold);transition:width .3s}
+.nav-links a:hover,.nav-links a.active{color:var(--gold)}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%}
+
+/* PAGE HEADER */
+.page-header{padding:12rem 2rem 5rem;text-align:center;position:relative;overflow:hidden}
+.page-header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(45,27,78,.5),transparent 60%);pointer-events:none}
+.page-eyebrow{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.5em;color:var(--gold3);text-transform:uppercase;display:block;margin-bottom:1rem;animation:fadeUp .8s ease forwards}
+.page-title{font-family:'Cinzel Decorative',serif;font-size:clamp(2rem,5vw,4rem);color:var(--parchment);text-shadow:0 0 60px rgba(201,168,76,.3);animation:fadeUp .8s .2s ease both}
+.page-desc{font-style:italic;color:var(--muted);max-width:550px;margin:1.5rem auto 0;line-height:1.8;animation:fadeUp .8s .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;padding:2rem;position:sticky;top:72px;z-index:50;background:linear-gradient(to bottom,rgba(6,3,14,.95),rgba(6,3,14,.8));border-bottom:1px solid rgba(201,168,76,.06)}
+.filter-btn{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;padding:.5rem 1.2rem;border:1px solid rgba(201,168,76,.2);background:transparent;color:var(--muted);cursor:none;transition:all .3s}
+.filter-btn:hover,.filter-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.06)}
+.filter-btn.gryffindor-f{border-color:rgba(174,0,1,.3);color:#ae4040}
+.filter-btn.gryffindor-f:hover,.filter-btn.gryffindor-f.active{background:rgba(174,0,1,.1);border-color:#ae0001;color:#e8c97a}
+.filter-btn.slytherin-f{border-color:rgba(26,71,42,.5);color:#3a8c5c}
+.filter-btn.slytherin-f:hover,.filter-btn.slytherin-f.active{background:rgba(26,71,42,.1);border-color:#1a472a;color:#aaddcc}
+.filter-btn.ravenclaw-f{border-color:rgba(14,26,109,.5);color:#4455aa}
+.filter-btn.ravenclaw-f:hover,.filter-btn.ravenclaw-f.active{background:rgba(14,26,109,.1);border-color:#0e1a6d;color:#aabbff}
+.filter-btn.hufflepuff-f{border-color:rgba(230,185,0,.3);color:#c8a020}
+.filter-btn.hufflepuff-f:hover,.filter-btn.hufflepuff-f.active{background:rgba(230,185,0,.08);border-color:#ecb939;color:#f0d060}
+
+/* CHARACTER GRID */
+.chars-section{padding:3rem 2rem 6rem;max-width:1300px;margin:0 auto}
+.chars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem}
+
+/* FLIP CARD */
+.char-card{perspective:1000px;height:460px;cursor:none}
+.char-card.hidden{display:none}
+.card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.4,0,.2,1)}
+.char-card.flipped .card-inner{transform:rotateY(180deg)}
+.card-face,.card-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid rgba(201,168,76,.15);overflow:hidden}
+.card-back{transform:rotateY(180deg)}
+
+/* FRONT */
+.card-face{background:linear-gradient(160deg,rgba(22,10,40,.95),rgba(13,7,32,.98));display:flex;flex-direction:column}
+.char-portrait{height:240px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.char-portrait-bg{position:absolute;inset:0;transition:transform .5s}
+.char-card:hover .char-portrait-bg{transform:scale(1.08)}
+.char-portrait-icon{font-size:6rem;position:relative;z-index:1;filter:drop-shadow(0 0 20px rgba(201,168,76,.4));transition:transform .5s}
+.char-card:hover .char-portrait-icon{transform:scale(1.1)}
+.house-badge{position:absolute;top:1rem;right:1rem;font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;padding:.3rem .7rem;border:1px solid;border-radius:0}
+.card-info{padding:1.5rem;flex:1;display:flex;flex-direction:column}
+.char-name{font-family:'Cinzel',serif;font-size:1.15rem;color:var(--gold);margin-bottom:.3rem}
+.char-role{font-size:.8rem;font-style:italic;color:var(--muted);margin-bottom:1rem}
+.char-traits{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:auto}
+.trait{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .6rem;border:1px solid rgba(201,168,76,.15);color:var(--muted)}
+.flip-hint{margin-top:1rem;font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.2em;color:var(--gold3);text-transform:uppercase;text-align:center;opacity:.7}
+
+/* BACK */
+.card-back{background:linear-gradient(160deg,rgba(30,15,55,.98),rgba(18,8,35,.99));display:flex;flex-direction:column;padding:2rem}
+.back-name{font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold);margin-bottom:.5rem}
+.back-house{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:1.5rem}
+.back-stats{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.stat{border:1px solid rgba(201,168,76,.1);padding:.75rem;background:rgba(0,0,0,.2)}
+.stat-label{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold3);display:block;margin-bottom:.3rem}
+.stat-val{font-size:.8rem;color:var(--text);font-style:italic}
+.back-quote{font-style:italic;color:var(--parchment);font-size:.85rem;line-height:1.7;border-left:2px solid var(--gold3);padding-left:1rem;margin-bottom:1.5rem;flex:1}
+.back-quote-attr{font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-top:.5rem}
+.flip-back-hint{font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.2em;color:var(--gold3);text-transform:uppercase;text-align:center;margin-top:auto;opacity:.7}
+
+/* House colors */
+.gryffindor-bg{background:linear-gradient(135deg,rgba(139,0,0,.4),rgba(50,0,0,.6))}
+.slytherin-bg{background:linear-gradient(135deg,rgba(0,60,30,.4),rgba(0,20,10,.6))}
+.ravenclaw-bg{background:linear-gradient(135deg,rgba(14,26,109,.4),rgba(5,10,40,.6))}
+.hufflepuff-bg{background:linear-gradient(135deg,rgba(120,90,0,.4),rgba(40,30,0,.6))}
+.dark-bg{background:linear-gradient(135deg,rgba(40,0,60,.3),rgba(10,0,20,.7))}
+.gryffindor-badge{border-color:#ae0001;color:#e8c97a}
+.slytherin-badge{border-color:#1a472a;color:#aaddcc}
+.ravenclaw-badge{border-color:#0e1a6d;color:#aabbff}
+.hufflepuff-badge{border-color:#ecb939;color:#f0d060}
+.dark-badge{border-color:#4a0080;color:#cc88ff}
+
+/* Reveal anim */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .6s,transform .6s}
+.reveal.visible{opacity:1;transform:none}
+
+footer{border-top:1px solid rgba(201,168,76,.1);padding:3rem 2rem;text-align:center;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+footer a{color:var(--gold3);text-decoration:none;margin:0 1rem}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<nav>
+  <a href="index.html" class="nav-brand">The <span>Wizarding</span> Archives</a>
+  <ul class="nav-links">
+    <li><a href="characters.html" class="active">Characters</a></li>
+    <li><a href="houses.html">Houses</a></li>
+    <li><a href="spells.html">Spells</a></li>
+    <li><a href="world.html">The World</a></li>
+    <li><a href="timeline.html">Chronicle</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <span class="page-eyebrow">Volume I · The Subjects</span>
+  <h1 class="page-title">Witches & Wizards</h1>
+  <p class="page-desc">From heroes marked by destiny to villains consumed by the pursuit of immortality — every soul who shaped the war between light and shadow.</p>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn gryffindor-f" data-filter="gryffindor">Gryffindor</button>
+  <button class="filter-btn slytherin-f" data-filter="slytherin">Slytherin</button>
+  <button class="filter-btn ravenclaw-f" data-filter="ravenclaw">Ravenclaw</button>
+  <button class="filter-btn hufflepuff-f" data-filter="hufflepuff">Hufflepuff</button>
+  <button class="filter-btn" data-filter="dark">Dark Side</button>
+</div>
+
+<section class="chars-section">
+  <div class="chars-grid" id="chars-grid">
+
+    <!-- HARRY POTTER -->
+    <div class="char-card reveal" data-house="gryffindor" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg gryffindor-bg"></div><span class="char-portrait-icon">⚡</span><span class="house-badge gryffindor-badge">Gryffindor</span></div>
+          <div class="card-info">
+            <div class="char-name">Harry James Potter</div>
+            <div class="char-role">The Chosen One · Auror · Saviour of the Wizarding World</div>
+            <div class="char-traits"><span class="trait">Brave</span><span class="trait">Self-Sacrificing</span><span class="trait">Loyal</span><span class="trait">Impulsive</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Harry James Potter</div>
+          <div class="back-house">Gryffindor · Born 31 July 1980</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Holly, phoenix feather, 11"</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Stag (Prongs)</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Half-blood</span></div>
+            <div class="stat"><span class="stat-label">Animagus</span><span class="stat-val">None</span></div>
+          </div>
+          <div class="back-quote">"I don't go looking for trouble. Trouble usually finds me."<div class="back-quote-attr">— Harry Potter</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERMIONE -->
+    <div class="char-card reveal" data-house="gryffindor" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg gryffindor-bg"></div><span class="char-portrait-icon">📚</span><span class="house-badge gryffindor-badge">Gryffindor</span></div>
+          <div class="card-info">
+            <div class="char-name">Hermione Jean Granger</div>
+            <div class="char-role">Brightest Witch of Her Age · Minister for Magic</div>
+            <div class="char-traits"><span class="trait">Brilliant</span><span class="trait">Principled</span><span class="trait">Resourceful</span><span class="trait">Relentless</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Hermione Jean Granger</div>
+          <div class="back-house">Gryffindor · Born 19 September 1979</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Vine wood, dragon heartstring, 10¾"</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Otter</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Muggle-born</span></div>
+            <div class="stat"><span class="stat-label">Specialty</span><span class="stat-val">Charms & Transfiguration</span></div>
+          </div>
+          <div class="back-quote">"Books! And cleverness! There are more important things — friendship and bravery."<div class="back-quote-attr">— Hermione Granger</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RON -->
+    <div class="char-card reveal" data-house="gryffindor" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg gryffindor-bg"></div><span class="char-portrait-icon">♟️</span><span class="house-badge gryffindor-badge">Gryffindor</span></div>
+          <div class="card-info">
+            <div class="char-name">Ronald Bilius Weasley</div>
+            <div class="char-role">The Loyal Heart · Auror · Keeper of Gryffindor</div>
+            <div class="char-traits"><span class="trait">Loyal</span><span class="trait">Humorous</span><span class="trait">Strategic</span><span class="trait">Courageous</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Ronald Bilius Weasley</div>
+          <div class="back-house">Gryffindor · Born 1 March 1980</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Willow, unicorn hair, 14"</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Jack Russell Terrier</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Pure-blood</span></div>
+            <div class="stat"><span class="stat-label">Talent</span><span class="stat-val">Wizard Chess</span></div>
+          </div>
+          <div class="back-quote">"When in doubt, go to the library."<div class="back-quote-attr">— Ron Weasley (ironically)</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DUMBLEDORE -->
+    <div class="char-card reveal" data-house="gryffindor" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg gryffindor-bg" style="opacity:.7;filter:brightness(.7)"></div><span class="char-portrait-icon">🌟</span><span class="house-badge gryffindor-badge">Gryffindor</span></div>
+          <div class="card-info">
+            <div class="char-name">Albus Percival Wulfric Brian Dumbledore</div>
+            <div class="char-role">Headmaster of Hogwarts · Supreme Mugwump · Grand Sorcerer</div>
+            <div class="char-traits"><span class="trait">Wise</span><span class="trait">Enigmatic</span><span class="trait">Manipulative</span><span class="trait">Brilliant</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Albus Dumbledore</div>
+          <div class="back-house">Gryffindor · Born c. August 1881</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Elder Wand (The Deathstick)</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Phoenix</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Half-blood</span></div>
+            <div class="stat"><span class="stat-label">Deathly Hallows</span><span class="stat-val">Elder Wand · Resurrection Stone</span></div>
+          </div>
+          <div class="back-quote">"It is our choices, Harry, that show what we truly are, far more than our abilities."<div class="back-quote-attr">— Albus Dumbledore</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SNAPE -->
+    <div class="char-card reveal" data-house="slytherin" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg slytherin-bg"></div><span class="char-portrait-icon">🐍</span><span class="house-badge slytherin-badge">Slytherin</span></div>
+          <div class="card-info">
+            <div class="char-name">Severus Snape</div>
+            <div class="char-role">Potions Master · Double Agent · Half-Blood Prince</div>
+            <div class="char-traits"><span class="trait">Complex</span><span class="trait">Devoted</span><span class="trait">Cruel</span><span class="trait">Heroic</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Severus Snape</div>
+          <div class="back-house">Slytherin · Born 9 January 1960</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Unknown wood, unknown core</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Doe (Lily's form)</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Half-blood</span></div>
+            <div class="stat"><span class="stat-label">Title</span><span class="stat-val">Half-Blood Prince</span></div>
+          </div>
+          <div class="back-quote">"After all this time?" — "Always."<div class="back-quote-attr">— Severus Snape to Dumbledore</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOLDEMORT -->
+    <div class="char-card reveal" data-house="dark" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg dark-bg"></div><span class="char-portrait-icon">💀</span><span class="house-badge dark-badge">Dark Lord</span></div>
+          <div class="card-info">
+            <div class="char-name">Lord Voldemort</div>
+            <div class="char-role">He Who Must Not Be Named · Tom Marvolo Riddle</div>
+            <div class="char-traits"><span class="trait">Ruthless</span><span class="trait">Brilliant</span><span class="trait">Paranoid</span><span class="trait">Megalomaniacal</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Lord Voldemort</div>
+          <div class="back-house">Slytherin · Born 31 December 1926</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Yew, phoenix feather, 13½" — Harry's twin</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">None (incapable of love)</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Half-blood (ironic)</span></div>
+            <div class="stat"><span class="stat-label">Horcruxes</span><span class="stat-val">7 created</span></div>
+          </div>
+          <div class="back-quote">"There is no good and evil, there is only power, and those too weak to seek it."<div class="back-quote-attr">— Voldemort (via Quirrell)</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DRACO -->
+    <div class="char-card reveal" data-house="slytherin" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg slytherin-bg"></div><span class="char-portrait-icon">🦅</span><span class="house-badge slytherin-badge">Slytherin</span></div>
+          <div class="card-info">
+            <div class="char-name">Draco Lucius Malfoy</div>
+            <div class="char-role">Death Eater's Son · Reluctant Villain · Potions Prodigy</div>
+            <div class="char-traits"><span class="trait">Cunning</span><span class="trait">Proud</span><span class="trait">Conflicted</span><span class="trait">Cowardly</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Draco Lucius Malfoy</div>
+          <div class="back-house">Slytherin · Born 5 June 1980</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Hawthorn, unicorn hair, 10"</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Unknown</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Pure-blood</span></div>
+            <div class="stat"><span class="stat-label">Notable Feat</span><span class="stat-val">Vanishing Cabinet repair</span></div>
+          </div>
+          <div class="back-quote">"I'm Draco Malfoy, I'm Draco, I'm on your side!"<div class="back-quote-attr">— Draco, in the final battle</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LUNA -->
+    <div class="char-card reveal" data-house="ravenclaw" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg ravenclaw-bg"></div><span class="char-portrait-icon">🌙</span><span class="house-badge ravenclaw-badge">Ravenclaw</span></div>
+          <div class="card-info">
+            <div class="char-name">Luna Lovegood</div>
+            <div class="char-role">Nargles Expert · Magizoologist · Seer of Hidden Things</div>
+            <div class="char-traits"><span class="trait">Eccentric</span><span class="trait">Perceptive</span><span class="trait">Compassionate</span><span class="trait">Fearless</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Luna Lovegood</div>
+          <div class="back-house">Ravenclaw · Born 13 February 1981</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Unknown (replaced after torture)</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Hare</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Half-blood</span></div>
+            <div class="stat"><span class="stat-label">Gift</span><span class="stat-val">Thestrals visible to her</span></div>
+          </div>
+          <div class="back-quote">"Things we lose have a way of coming back to us in the end, if not always in the way we expect."<div class="back-quote-attr">— Luna Lovegood</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEVILLE -->
+    <div class="char-card reveal" data-house="gryffindor" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg gryffindor-bg"></div><span class="char-portrait-icon">🌿</span><span class="house-badge gryffindor-badge">Gryffindor</span></div>
+          <div class="card-info">
+            <div class="char-name">Neville Longbottom</div>
+            <div class="char-role">The Other Chosen One · Herbology Master · Resistance Leader</div>
+            <div class="char-traits"><span class="trait">Underestimated</span><span class="trait">Brave</span><span class="trait">Determined</span><span class="trait">Resilient</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Neville Longbottom</div>
+          <div class="back-house">Gryffindor · Born 30 July 1980</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Cherry wood, unicorn hair, 13"</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Non-corporeal</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Pure-blood</span></div>
+            <div class="stat"><span class="stat-label">Destiny</span><span class="stat-val">Slew Nagini with Gryffindor's sword</span></div>
+          </div>
+          <div class="back-quote">"Why is it always me?"<div class="back-quote-attr">— Neville Longbottom (repeatedly, and rightfully so)</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MCGONAGALL -->
+    <div class="char-card reveal" data-house="gryffindor" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg gryffindor-bg" style="filter:brightness(.65)"></div><span class="char-portrait-icon">🐱</span><span class="house-badge gryffindor-badge">Gryffindor</span></div>
+          <div class="card-info">
+            <div class="char-name">Minerva McGonagall</div>
+            <div class="char-role">Head of Gryffindor · Transfiguration Mistress · Headmistress</div>
+            <div class="char-traits"><span class="trait">Stern</span><span class="trait">Just</span><span class="trait">Fierce</span><span class="trait">Deeply Caring</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Minerva McGonagall</div>
+          <div class="back-house">Gryffindor · Born 4 October 1935</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Fir, dragon heartstring, 9½"</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Cat</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Half-blood</span></div>
+            <div class="stat"><span class="stat-label">Animagus</span><span class="stat-val">Tabby cat</span></div>
+          </div>
+          <div class="back-quote">"Have a biscuit, Potter."<div class="back-quote-attr">— McGonagall, after Umbridge's assault</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIRIUS -->
+    <div class="char-card reveal" data-house="gryffindor" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg gryffindor-bg" style="filter:saturate(.5) brightness(.6)"></div><span class="char-portrait-icon">🐺</span><span class="house-badge gryffindor-badge">Gryffindor</span></div>
+          <div class="card-info">
+            <div class="char-name">Sirius Orion Black</div>
+            <div class="char-role">Padfoot · Godfather · Last Heir of the Noble House of Black</div>
+            <div class="char-traits"><span class="trait">Reckless</span><span class="trait">Fiercely Loyal</span><span class="trait">Tragic</span><span class="trait">Wild</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Sirius Orion Black</div>
+          <div class="back-house">Gryffindor · Born 3 November 1959</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Unknown</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Large dog</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Pure-blood</span></div>
+            <div class="stat"><span class="stat-label">Animagus</span><span class="stat-val">Large black dog</span></div>
+          </div>
+          <div class="back-quote">"The ones that love us never really leave us. You can always find them in here."<div class="back-quote-attr">— Sirius Black</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BELLATRIX -->
+    <div class="char-card reveal" data-house="dark" onclick="this.classList.toggle('flipped')">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="char-portrait"><div class="char-portrait-bg dark-bg" style="background:linear-gradient(135deg,rgba(80,0,0,.5),rgba(20,0,30,.8))"></div><span class="char-portrait-icon">🔱</span><span class="house-badge dark-badge">Death Eater</span></div>
+          <div class="card-info">
+            <div class="char-name">Bellatrix Lestrange</div>
+            <div class="char-role">The Dark Lord's Most Faithful · Torturer · Black Family heir</div>
+            <div class="char-traits"><span class="trait">Fanatical</span><span class="trait">Sadistic</span><span class="trait">Brilliant</span><span class="trait">Deranged</span></div>
+            <div class="flip-hint">✦ Click to reveal lore ✦</div>
+          </div>
+        </div>
+        <div class="card-back">
+          <div class="back-name">Bellatrix Lestrange</div>
+          <div class="back-house">Slytherin · Born 1951</div>
+          <div class="back-stats">
+            <div class="stat"><span class="stat-label">Wand</span><span class="stat-val">Walnut, dragon heartstring, 12¾"</span></div>
+            <div class="stat"><span class="stat-label">Patronus</span><span class="stat-val">Unknown</span></div>
+            <div class="stat"><span class="stat-label">Blood</span><span class="stat-val">Pure-blood</span></div>
+            <div class="stat"><span class="stat-label">Crime</span><span class="stat-val">Drove Longbottoms to madness</span></div>
+          </div>
+          <div class="back-quote">"I killed Sirius Black! You coming to get me?"<div class="back-quote-attr">— Bellatrix Lestrange</div></div>
+          <div class="flip-back-hint">✦ Click to return ✦</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <a href="index.html">Home</a>
+  <a href="houses.html">Houses</a>
+  <a href="spells.html">Spells</a>
+  <a href="world.html">The World</a>
+  <a href="timeline.html">Chronicle</a>
+  <br><br>
+  A fan creation — all characters belong to J.K. Rowling
+</footer>
+
+<script>
+// cursor
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+  if(Math.random()<.2){
+    const s=document.createElement('div');s.className='sparkle';
+    const sz=Math.random()*5+2;
+    s.style.cssText=`left:${mx}px;top:${my}px;width:${sz}px;height:${sz}px;background:hsl(${40+Math.random()*20},80%,${60+Math.random()*20}%);--dx:${(Math.random()-.5)*40}px;--dy:${(Math.random()-.5)*40}px`;
+    document.body.appendChild(s);setTimeout(()=>s.remove(),800);
+  }
+});
+setInterval(()=>{rx+=(mx-rx)*.15;ry+=(my-ry)*.15;ring.style.left=rx+'px';ring.style.top=ry+'px'},16);
+
+// filter
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const f=btn.dataset.filter;
+    document.querySelectorAll('.char-card').forEach(card=>{
+      if(f==='all'||card.dataset.house===f){card.classList.remove('hidden')}
+      else{card.classList.add('hidden')}
+    });
+  });
+});
+
+// reveal
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
